@@ -21,10 +21,10 @@ FROM alpine:latest as gocd-agent-unzip
 RUN \
   apk --no-cache upgrade && \
   apk add --no-cache curl && \
-  curl --fail --location --silent --show-error "https://download.gocd.org/binaries/19.4.0-9155/generic/go-agent-19.4.0-9155.zip" > /tmp/go-agent-19.4.0-9155.zip
-
-RUN unzip /tmp/go-agent-19.4.0-9155.zip -d /
-RUN mv /go-agent-19.4.0 /go-agent
+  curl --fail --location --silent --show-error \
+  "https://download.gocd.org/binaries/19.4.0-9155/generic/go-agent-19.4.0-9155.zip" > /tmp/go-agent-19.4.0-9155.zip && \
+  unzip /tmp/go-agent-19.4.0-9155.zip -d / && \
+  mv /go-agent-19.4.0 /go-agent
 
 FROM docker:dind
 MAINTAINER ThoughtWorks, Inc. <support@thoughtworks.com>
@@ -61,7 +61,10 @@ RUN \
   apk --no-cache upgrade && \
   apk add --no-cache nss git mercurial subversion openssh-client bash curl && \
   apk add --no-cache openjdk8-jre-base && \
-  mkdir -p /docker-entrypoint.d
+  mkdir -p /docker-entrypoint.d && \
+# add support for docker-compose
+  apk add py-pip python-dev libffi-dev openssl-dev gcc libc-dev make && \
+  pip install docker-compose
 
 COPY --from=gocd-agent-unzip /go-agent /go-agent
 # ensure that logs are printed to console output
